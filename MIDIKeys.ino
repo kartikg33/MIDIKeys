@@ -42,7 +42,7 @@
 
 
 // Uncomment this line to send debug messages to the serial monitor
-#define DEBUG
+//#define DEBUG
 
 // Uncomment this line to enable outputs corresponding to the MIDI Fighter so MF mappings can be used in Traktor.
 //#define MIDI_FIGHTER
@@ -329,7 +329,6 @@ void loop()
     
     // Read the current state of the digital input and store it temporarily.
     tempDigitalInput = digitalRead(digitalInputMapping[i]);
-    
     // Check if the last state is different to the current state.
     if (digitalInputs[i] != tempDigitalInput)
     {
@@ -480,6 +479,12 @@ void noteOn(byte channel, byte pitch, byte velocity)
       Serial.write(channel);
       Serial.write(pitch);
       Serial.write(velocity);
+    #endif
+  }
+  else
+  {
+     #ifdef DEBUG
+      Serial.println("Button not within channel limits");
     #endif
   }
 }
