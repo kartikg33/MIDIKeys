@@ -42,7 +42,7 @@
 
 
 // Uncomment this line to send debug messages to the serial monitor
-//#define DEBUG
+#define DEBUG
 
 // Uncomment this line to enable outputs corresponding to the MIDI Fighter so MF mappings can be used in Traktor.
 //#define MIDI_FIGHTER
@@ -400,7 +400,7 @@ void loop()
    * the timer expires the analogue input is assumed to be no longer moving. Subsequent movements must exceed the
    * threshold amount.
    */
-  for (i = 0; i < NUM_AI; i++)
+  for (i = 0; i < 0; i++)
   {
     // Read the analogue input pin, dividing it by 8 so the 10-bit ADC value (0-1023) is converted to a 7-bit MIDI value (0-127).
     tempAnalogueInput = analogRead(analogueInputMapping[i]) / 8;
