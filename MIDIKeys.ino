@@ -47,7 +47,7 @@ void loop() {
 // Fourth parameter is the control value (0-127).
 
 void controlChange(byte channel, byte control, byte value) {
-  midiEventPacket_t event = {0x0B, 0xB0 | channel, control, value};
+  midiEventPacket_t event = {(byte)0x0B, (byte)(0xB0 | channel), control, value};
   MidiUSB.sendMIDI(event);
 }
 
@@ -100,11 +100,11 @@ void playNotes()
 // Fourth parameter is the velocity (64 = normal, 127 = fastest).
 
 void noteOn(byte channel, byte pitch, byte velocity) {
-  midiEventPacket_t noteOn = {0x09, 0x90 | channel, pitch, velocity};
+  midiEventPacket_t noteOn = {(byte)0x09, (byte)(0x90 | channel), pitch, velocity};
   MidiUSB.sendMIDI(noteOn);
 }
 
 void noteOff(byte channel, byte pitch, byte velocity) {
-  midiEventPacket_t noteOff = {0x08, 0x80 | channel, pitch, velocity};
+  midiEventPacket_t noteOff = {(byte)0x08, (byte)(0x80 | channel), pitch, velocity};
   MidiUSB.sendMIDI(noteOff);
 }
