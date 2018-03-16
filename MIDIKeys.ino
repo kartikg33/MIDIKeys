@@ -11,10 +11,17 @@
 #include "PitchToNote.h"
 #define NUM_BUTTONS  2
 
+template<int PIN> void ISR_key_rising();
+template<int PIN> void ISR_key_falling();
+
 typedef struct
 {
-    uint8_t pin;
-    byte note;
+    uint8_t pin;                        // Digital Input pin
+    byte note;                          // note number
+    void (*volatile ISR_rising)(void);
+    void (*volatile ISR_falling)(void);
+    volatile bool state;             // false for off, true for on
+    volatile bool pending;        // false for no state change, true for new state change
 } midikey_t;
 
 /* 
@@ -22,28 +29,58 @@ typedef struct
  *  We shall centre our notes around C4 with the aim of them being pushed down an octave by JUCE
  *  So our middle C will be C4 even though we really want it to be C3
 */
-const midikey_t keys[NUM_BUTTONS] = {
-  { 2,  pitchC4 },
-  { 3,  pitchD4b }
+volatile midikey_t keys[NUM_BUTTONS] = {
+    { 2,    pitchC4,     ISR_key_rising<0>,    ISR_key_falling<0>,    false,  false },
+    { 3,    pitchD4b,   ISR_key_rising<1>,    ISR_key_falling<1>,    false,  false }
 };
 
-const int intensityPot = 0;  //A0 input
+template<int PIN> void ISR_key_rising()
+{
+     if (digitalRead(keys[PIN].pin) == LOW)
+        {
+            keys[PIN].state = false;
+        }
+        else
+        {
+                
+        }
+}
 
-uint8_t pressedButtons = 0x00;
-uint8_t previousButtons = 0x00;
-uint8_t intensity;
+template<int PIN> void ISR_key_falling()
+{
+    
+}
+
+
 
 void setup() {
-  for (int i = 0; i < NUM_BUTTONS; i++)
-    pinMode(keys[i].pin, INPUT_PULLUP);
+    for (int i = 0; i < NUM_BUTTONS; i++)   
+    {
+        pinMode(keys[i].pin, INPUT_PULLUP);
+        attachInterrupt(digitalPinToInterrupt(keys[i].pin), keys[i].ISR_rising, RISING);
+        attachInterrupt(digitalPinToInterrupt(keys[i].pin), keys[i].ISR_falling, FALLING);
+    }
 }
 
 
 void loop() {
-  readButtons();
-  readIntensity();
-  playNotes();
+
+    for (int i = 0; i < NUM_BUTTONS; i++)
+    {
+        // process states if pending
+        if (keys[i].pending)
+        {
+            // act on state
+            
+            // reset pending
+            keys[i].pending = false;
+        }
+       
+    }
 }
+
+
+
 
 // First parameter is the event type (0x0B = control change).
 // Second parameter is the event type, combined with the channel.
@@ -57,28 +94,14 @@ void controlChange(byte channel, byte control, byte value) {
 
 void readButtons()
 {
-  for (int i = 0; i < NUM_BUTTONS; i++)
-  {
-    if (digitalRead(keys[i].pin) == LOW)
-    {
-      bitWrite(pressedButtons, i, 1);
-      delay(50);
-    }
-    else
-      bitWrite(pressedButtons, i, 0);
-  }
-}
 
-void readIntensity()
-{
-  int val = analogRead(intensityPot);
-  intensity = (uint8_t) (map(val, 0, 1023, 0, 127));
 }
-
+/*
 void playNotes()
 {
   for (int i = 0; i < NUM_BUTTONS; i++)
   {
+    
     if (bitRead(pressedButtons, i) != bitRead(previousButtons, i))
     {
       if (bitRead(pressedButtons, i))
@@ -96,6 +119,7 @@ void playNotes()
     }
   }
 }
+*/
 
 // First parameter is the event type (0x09 = note on, 0x08 = note off).
 // Second parameter is note-on/note-off, combined with the channel.
