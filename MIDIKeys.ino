@@ -16,12 +16,12 @@ template<int PIN> void ISR_key_falling();
 
 typedef struct
 {
-    uint8_t pin;                        // Digital Input pin
-    byte note;                          // note number
-    void (*volatile ISR_rising)(void);
-    void (*volatile ISR_falling)(void);
-    volatile bool state;             // false for off, true for on
-    volatile bool pending;        // false for no state change, true for new state change
+    const uint8_t pin;                             // Digital Input pin
+    const byte note;                               // note number
+    void (*volatile ISR_rising)(void);       // pointer to ISR to capture rising edge
+    void (*volatile ISR_falling)(void);      // pointer to ISR to capture falling edge
+    volatile bool on_state;                           // false for off, true for on
+    volatile bool pending;                      // false for no state change, true for new state change
 } midikey_t;
 
 /* 
@@ -34,25 +34,6 @@ volatile midikey_t keys[NUM_BUTTONS] = {
     { 3,    pitchD4b,   ISR_key_rising<1>,    ISR_key_falling<1>,    false,  false }
 };
 
-template<int PIN> void ISR_key_rising()
-{
-     if (digitalRead(keys[PIN].pin) == LOW)
-        {
-            keys[PIN].state = false;
-        }
-        else
-        {
-                
-        }
-}
-
-template<int PIN> void ISR_key_falling()
-{
-    
-}
-
-
-
 void setup() {
     for (int i = 0; i < NUM_BUTTONS; i++)   
     {
@@ -64,23 +45,24 @@ void setup() {
 
 
 void loop() {
-
     for (int i = 0; i < NUM_BUTTONS; i++)
     {
-        // process states if pending
-        if (keys[i].pending)
+        if(keys[i].pending)
         {
-            // act on state
-            
-            // reset pending
-            keys[i].pending = false;
+            if(keys[i].on_state) // note on
+            {
+                noteOn(0, keys[i].note, 64); // 64 =  normal intensity
+                MidiUSB.flush();
+            }
+            else // note off
+            {
+                noteOff(0, keys[i].note, 0);
+                MidiUSB.flush();
+            }
+            keys[i].pending = false; // reset pending flag
         }
-       
     }
 }
-
-
-
 
 // First parameter is the event type (0x0B = control change).
 // Second parameter is the event type, combined with the channel.
@@ -91,35 +73,6 @@ void controlChange(byte channel, byte control, byte value) {
   midiEventPacket_t event = {(byte)0x0B, (byte)(0xB0 | channel), control, value};
   MidiUSB.sendMIDI(event);
 }
-
-void readButtons()
-{
-
-}
-/*
-void playNotes()
-{
-  for (int i = 0; i < NUM_BUTTONS; i++)
-  {
-    
-    if (bitRead(pressedButtons, i) != bitRead(previousButtons, i))
-    {
-      if (bitRead(pressedButtons, i))
-      {
-        bitWrite(previousButtons, i , 1);
-        noteOn(0, keys[i].note, intensity);
-        MidiUSB.flush();
-      }
-      else
-      {
-        bitWrite(previousButtons, i , 0);
-        noteOff(0, keys[i].note, 0);
-        MidiUSB.flush();
-      }
-    }
-  }
-}
-*/
 
 // First parameter is the event type (0x09 = note on, 0x08 = note off).
 // Second parameter is note-on/note-off, combined with the channel.
@@ -132,7 +85,29 @@ void noteOn(byte channel, byte pitch, byte velocity) {
   MidiUSB.sendMIDI(noteOn);
 }
 
+// First parameter is the event type (0x09 = note on, 0x08 = note off).
+// Second parameter is note-on/note-off, combined with the channel.
+// Channel can be anything between 0-15. Typically reported to the user as 1-16.
+// Third parameter is the note number (48 = middle C).
+// Fourth parameter is the velocity (64 = normal, 127 = fastest).
+
 void noteOff(byte channel, byte pitch, byte velocity) {
   midiEventPacket_t noteOff = {(byte)0x08, (byte)(0x80 | channel), pitch, velocity};
   MidiUSB.sendMIDI(noteOff);
+}
+
+/** ISRs **/
+
+template<int PIN> void ISR_key_rising()
+{
+    // TODO: debounce
+    keys[PIN].on_state = false; // update state
+    keys[PIN].pending = false; // set pending
+}
+
+template<int PIN> void ISR_key_falling()
+{
+    // TODO: debounce
+    keys[PIN].on_state = true; // update state
+    keys[PIN].pending = true; // set pending
 }
