@@ -15,11 +15,12 @@ template<int PIN> void ISR_key_change();
 
 typedef struct
 {
-    const uint8_t pin;                             // Digital Input pin
-    const byte note;                               // note number
-    void (*volatile ISR)(void);                 // pointer to ISR to capture a change in signal
-    volatile bool on_state;                     // false for off, true for on
-    volatile bool pending;                      // false for no state change, true for new state change
+    const uint8_t pin;                                         // Digital Input pin
+    const byte note;                                           // note number
+    void (*volatile ISR)(void);                             // pointer to ISR to capture a change in signal
+    volatile bool on_state;                                 // false for off, true for on
+    volatile bool pending;                                  // false for no state change, true for new state change
+    volatile unsigned long last_change_time;   // stores last time a change was made
 } midikey_t;
 
 /* 
@@ -28,8 +29,8 @@ typedef struct
  *  So our middle C will be C4 even though we really want it to be C3
 */
 volatile midikey_t keys[NUM_BUTTONS] = {
-    { 2,    pitchC4,     ISR_key_change<0>,    false,  false },
-    { 3,    pitchD4b,   ISR_key_change<1>,    false,  false }
+    { 2,    pitchC4,     ISR_key_change<0>,    false,  false,   0 },
+    { 3,    pitchD4b,   ISR_key_change<1>,    false,  false,   0 }
 };
 
 void setup() {
@@ -97,15 +98,14 @@ void noteOff(byte channel, byte pitch, byte velocity) {
 
 template<int PIN> void ISR_key_change()
 {
-    if(digitalRead(keys[PIN].pin) == HIGH)
+    bool current_state = (digitalRead(keys[PIN].pin) == LOW); // get current state: LOW = on
+    // check state has changed and is greater than debounce time
+    if( (millis() - keys[PIN].last_change_time > 10) && (keys[PIN].on_state != current_state) )
     {
-        keys[PIN].on_state = false;
-    } 
-    else 
-    {
-        keys[PIN].on_state = true;
+        keys[PIN].on_state = current_state; // update state
+        keys[PIN].pending = true; // set flag so key is ready to be actioned
+        keys[PIN].last_change_time = millis(); // update change time
     }
-    keys[PIN].pending = true;
 }
 
 
