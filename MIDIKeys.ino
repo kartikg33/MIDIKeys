@@ -11,16 +11,14 @@
 #include "PitchToNote.h"
 #define NUM_BUTTONS  2
 
-template<int PIN> void ISR_key_rising();
-template<int PIN> void ISR_key_falling();
+template<int PIN> void ISR_key_change();
 
 typedef struct
 {
     const uint8_t pin;                             // Digital Input pin
     const byte note;                               // note number
-    void (*volatile ISR_rising)(void);       // pointer to ISR to capture rising edge
-    void (*volatile ISR_falling)(void);      // pointer to ISR to capture falling edge
-    volatile bool on_state;                           // false for off, true for on
+    void (*volatile ISR)(void);                 // pointer to ISR to capture a change in signal
+    volatile bool on_state;                     // false for off, true for on
     volatile bool pending;                      // false for no state change, true for new state change
 } midikey_t;
 
@@ -30,16 +28,15 @@ typedef struct
  *  So our middle C will be C4 even though we really want it to be C3
 */
 volatile midikey_t keys[NUM_BUTTONS] = {
-    { 2,    pitchC4,     ISR_key_rising<0>,    ISR_key_falling<0>,    false,  false },
-    { 3,    pitchD4b,   ISR_key_rising<1>,    ISR_key_falling<1>,    false,  false }
+    { 2,    pitchC4,     ISR_key_change<0>,    false,  false },
+    { 3,    pitchD4b,   ISR_key_change<1>,    false,  false }
 };
 
 void setup() {
     for (int i = 0; i < NUM_BUTTONS; i++)   
     {
         pinMode(keys[i].pin, INPUT_PULLUP);
-        attachInterrupt(digitalPinToInterrupt(keys[i].pin), keys[i].ISR_rising, RISING);
-        attachInterrupt(digitalPinToInterrupt(keys[i].pin), keys[i].ISR_falling, FALLING);
+        attachInterrupt(digitalPinToInterrupt(keys[i].pin), keys[i].ISR, CHANGE);
     }
 }
 
@@ -98,16 +95,17 @@ void noteOff(byte channel, byte pitch, byte velocity) {
 
 /** ISRs **/
 
-template<int PIN> void ISR_key_rising()
+template<int PIN> void ISR_key_change()
 {
-    // TODO: debounce
-    keys[PIN].on_state = false; // update state
-    keys[PIN].pending = false; // set pending
+    if(digitalRead(keys[PIN].pin) == HIGH)
+    {
+        keys[PIN].on_state = false;
+    } 
+    else 
+    {
+        keys[PIN].on_state = true;
+    }
+    keys[PIN].pending = true;
 }
 
-template<int PIN> void ISR_key_falling()
-{
-    // TODO: debounce
-    keys[PIN].on_state = true; // update state
-    keys[PIN].pending = true; // set pending
-}
+
