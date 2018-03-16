@@ -11,22 +11,27 @@
 #include "PitchToNote.h"
 #define NUM_BUTTONS  2
 
-const uint8_t C3 = 2;
-const uint8_t D3b = 3;
+typedef struct
+{
+    uint8_t pin;
+    byte note;
+} midikey_t;
+
+/* NOTE: to musicians, middle C is C4 (note 60), not C3 (note 48) */
+const midikey_t keys[NUM_BUTTONS] = {
+  { 2,  pitchC4 },
+  { 3,  pitchD4b }
+};
 
 const int intensityPot = 0;  //A0 input
 
-const uint8_t buttons[NUM_BUTTONS] = {C3, D3b};
-const byte notePitches[NUM_BUTTONS] = {pitchC3, pitchD3b};
-
-uint8_t notesTime[NUM_BUTTONS];
 uint8_t pressedButtons = 0x00;
 uint8_t previousButtons = 0x00;
 uint8_t intensity;
 
 void setup() {
   for (int i = 0; i < NUM_BUTTONS; i++)
-    pinMode(buttons[i], INPUT_PULLUP);
+    pinMode(keys[i].pin, INPUT_PULLUP);
 }
 
 
@@ -50,7 +55,7 @@ void readButtons()
 {
   for (int i = 0; i < NUM_BUTTONS; i++)
   {
-    if (digitalRead(buttons[i]) == LOW)
+    if (digitalRead(keys[i].pin) == LOW)
     {
       bitWrite(pressedButtons, i, 1);
       delay(50);
@@ -75,13 +80,13 @@ void playNotes()
       if (bitRead(pressedButtons, i))
       {
         bitWrite(previousButtons, i , 1);
-        noteOn(0, notePitches[i], intensity);
+        noteOn(0, keys[i].note, intensity);
         MidiUSB.flush();
       }
       else
       {
         bitWrite(previousButtons, i , 0);
-        noteOff(0, notePitches[i], 0);
+        noteOff(0, keys[i].note, 0);
         MidiUSB.flush();
       }
     }
