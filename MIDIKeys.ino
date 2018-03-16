@@ -17,7 +17,11 @@ typedef struct
     byte note;
 } midikey_t;
 
-/* NOTE: to musicians, middle C is C4 (note 60), not C3 (note 48) */
+/* 
+ *  NOTE:MIDIUSB defines note 60 as C4, whereas JUCE defines note 60 as C3. 
+ *  We shall centre our notes around C4 with the aim of them being pushed down an octave by JUCE
+ *  So our middle C will be C4 even though we really want it to be C3
+*/
 const midikey_t keys[NUM_BUTTONS] = {
   { 2,  pitchC4 },
   { 3,  pitchD4b }
