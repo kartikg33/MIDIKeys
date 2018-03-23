@@ -9,7 +9,7 @@
 
 #include "MIDIUSB.h"
 #include "PitchToNote.h"
-#define NUM_KEYS  2
+#define NUM_KEYS  10
 
 template<int KEY> void ISR_key_change();
 
@@ -29,8 +29,16 @@ typedef struct
  *  So our middle C will be C4 even though we really want it to be C3
 */
 volatile midikey_t keys[NUM_KEYS] = {
-    { 2,    pitchC4,     ISR_key_change<0>,    false,  false,   0 },
-    { 3,    pitchD4b,   ISR_key_change<1>,    false,  false,   0 }
+    { 43,    pitchC4,       ISR_key_change<0>,    false,  false,   0 },
+    { 45,    pitchD4b,     ISR_key_change<1>,    false,  false,   0 },
+    { 47,    pitchD4,       ISR_key_change<2>,    false,  false,   0 },
+    { 49,    pitchE4b,      ISR_key_change<3>,    false,  false,   0 },
+    { 51,    pitchE4,       ISR_key_change<4>,    false,  false,   0 },
+    { 53,    pitchF4,       ISR_key_change<5>,    false,  false,   0 },
+    { 50,    pitchG4b,     ISR_key_change<6>,    false,  false,   0 },
+    { 48,    pitchG4,       ISR_key_change<7>,    false,  false,   0 },
+    { 46,    pitchA4b,     ISR_key_change<8>,    false,  false,   0 },                    
+    { 44,    pitchB4b,      ISR_key_change<9>,    false,  false,   0 }
 };
 
 void setup() {
