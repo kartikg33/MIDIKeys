@@ -9,7 +9,7 @@
 
 #include "MIDIUSB.h"
 #include "PitchToNote.h"
-#define NUM_BUTTONS  2
+#define NUM_KEYS  2
 
 template<int KEY> void ISR_key_change();
 
@@ -28,13 +28,13 @@ typedef struct
  *  We shall centre our notes around C4 with the aim of them being pushed down an octave by JUCE
  *  So our middle C will be C4 even though we really want it to be C3
 */
-volatile midikey_t keys[NUM_BUTTONS] = {
+volatile midikey_t keys[NUM_KEYS] = {
     { 2,    pitchC4,     ISR_key_change<0>,    false,  false,   0 },
     { 3,    pitchD4b,   ISR_key_change<1>,    false,  false,   0 }
 };
 
 void setup() {
-    for (int i = 0; i < NUM_BUTTONS; i++)   
+    for (int i = 0; i < NUM_KEYS; i++)   
     {
         pinMode(keys[i].pin, INPUT_PULLUP);
         attachInterrupt(digitalPinToInterrupt(keys[i].pin), keys[i].ISR, CHANGE);
@@ -43,7 +43,7 @@ void setup() {
 
 
 void loop() {
-    for (int i = 0; i < NUM_BUTTONS; i++)
+    for (int i = 0; i < NUM_KEYS; i++)
     {
         if(keys[i].pending)
         {
