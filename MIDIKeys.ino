@@ -9,6 +9,9 @@
 
 #include "MIDIUSB.h"
 #include "PitchToNote.h"
+
+#define VERSION "1.0"
+
 #define NUM_KEYS  10
 
 template<int KEY> void ISR_key_change();
