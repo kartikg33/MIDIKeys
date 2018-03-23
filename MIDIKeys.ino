@@ -11,7 +11,7 @@
 #include "PitchToNote.h"
 #define NUM_BUTTONS  2
 
-template<int PIN> void ISR_key_change();
+template<int KEY> void ISR_key_change();
 
 typedef struct
 {
@@ -96,15 +96,15 @@ void noteOff(byte channel, byte pitch, byte velocity) {
 
 /** ISRs **/
 
-template<int PIN> void ISR_key_change()
+template<int KEY> void ISR_key_change()
 {
-    bool current_state = (digitalRead(keys[PIN].pin) == LOW); // get current state: LOW = on
+    bool current_state = (digitalRead(keys[KEY].pin) == LOW); // get current state: LOW = on
     // check state has changed and is greater than debounce time
-    if( (millis() - keys[PIN].last_change_time > 10) && (keys[PIN].on_state != current_state) )
+    if( (millis() - keys[KEY].last_change_time > 10) && (keys[KEY].on_state != current_state) )
     {
-        keys[PIN].on_state = current_state; // update state
-        keys[PIN].pending = true; // set flag so key is ready to be actioned
-        keys[PIN].last_change_time = millis(); // update change time
+        keys[KEY].on_state = current_state; // update state
+        keys[KEY].pending = true; // set flag so key is ready to be actioned
+        keys[KEY].last_change_time = millis(); // update change time
     }
 }
 
