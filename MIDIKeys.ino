@@ -10,7 +10,11 @@
 #include "MIDIUSB.h"
 #include "PitchToNote.h"
 
+
 #define VERSION "1.0"
+
+#define LED_BOTTOM_CNTRL  2
+#define LED_TOP_CNTRL  3
 
 #define NUM_KEYS  10
 
@@ -45,15 +49,22 @@ volatile midikey_t keys[NUM_KEYS] = {
 };
 
 void setup() {
+    pinMode(LED_BOTTOM_CNTRL, OUTPUT);  
+    pinMode(LED_TOP_CNTRL, OUTPUT); 
+    
+    
     for (int i = 0; i < NUM_KEYS; i++)   
     {
         pinMode(keys[i].pin, INPUT_PULLUP);
         attachInterrupt(digitalPinToInterrupt(keys[i].pin), keys[i].ISR, CHANGE);
     }
+    
 }
 
 
 void loop() {
+    analogWrite(LED_BOTTOM_CNTRL, 0);
+    /*
     for (int i = 0; i < NUM_KEYS; i++)
     {
         if(keys[i].pending)
@@ -71,6 +82,7 @@ void loop() {
             keys[i].pending = false; // reset pending flag
         }
     }
+    */
 }
 
 // First parameter is the event type (0x0B = control change).
