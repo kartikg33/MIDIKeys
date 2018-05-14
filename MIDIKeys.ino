@@ -10,7 +10,6 @@
 #include "MIDIUSB.h"
 #include "PitchToNote.h"
 
-
 #define VERSION "1.0"
 
 #define LED_BOTTOM_CNTRL  2
@@ -51,7 +50,9 @@ volatile midikey_t keys[NUM_KEYS] = {
 void setup() {
     pinMode(LED_BOTTOM_CNTRL, OUTPUT);  
     pinMode(LED_TOP_CNTRL, OUTPUT); 
-    
+    // reset led brightness
+    analogWrite(LED_BOTTOM_CNTRL, 255);
+    analogWrite(LED_TOP_CNTRL, 255);
     
     for (int i = 0; i < NUM_KEYS; i++)   
     {
@@ -63,8 +64,15 @@ void setup() {
 
 
 void loop() {
-    analogWrite(LED_BOTTOM_CNTRL, 0);
-    /*
+    // fetch led brightness
+    // TODO: get led brightness setting from somewhere
+    byte bottom_brightness = 255; // default
+    byte top_brightness = 255; // default
+
+    // set led brightness
+    analogWrite(LED_BOTTOM_CNTRL, bottom_brightness);
+    analogWrite(LED_TOP_CNTRL, top_brightness);
+    // process keys
     for (int i = 0; i < NUM_KEYS; i++)
     {
         if(keys[i].pending)
@@ -72,17 +80,16 @@ void loop() {
             if(keys[i].on_state) // note on
             {
                 noteOn(0, keys[i].note, 64); // 64 =  normal intensity
-                MidiUSB.flush();
+                MidiUSB.flush(); // flush is required to transmit note message in serial bus immediately
             }
             else // note off
             {
                 noteOff(0, keys[i].note, 0);
-                MidiUSB.flush();
+                MidiUSB.flush(); // flush is required to transmit note message in serial bus immediately
             }
             keys[i].pending = false; // reset pending flag
         }
     }
-    */
 }
 
 // First parameter is the event type (0x0B = control change).
